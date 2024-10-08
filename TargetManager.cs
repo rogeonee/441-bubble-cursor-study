@@ -7,6 +7,7 @@ public class TargetManager : MonoBehaviour
     [SerializeField] private GameObject targetPrefab;
     [SerializeField] private List<float> targetSizes;
     [SerializeField] private int numDistractors;
+    [SerializeField] private StudyBehavior studyBehavior;
 
     private List<Target> targetList = new();
     private Camera mainCamera;
@@ -39,9 +40,15 @@ public class TargetManager : MonoBehaviour
 
     public void StartNewTrial()
     {
-        Debug.Log("StartNewTrial fired");
-        ClearTargets();         // Clear all current targets
-        SpawnStartTarget();     // Spawn the start target at the center
+        Debug.Log("TM: StartNewTrial fired");
+        ClearTargets();
+        SpawnStartTarget();
+    }
+
+    public void OnGoalTargetSelected()
+    {
+        Debug.Log("TM: OnGoalTargetSelected, delegating to SB");
+        studyBehavior.NextTrial();  // StudyBehavior decides if the next trial should start or the study should end
     }
 
     // Method to spawn trial targets including the goal and distractors
@@ -52,7 +59,7 @@ public class TargetManager : MonoBehaviour
 
         // Generate positions for all targets (goal + distractors)
         List<Vector3> points = GenerateRandomPoints();
-        Debug.Log($"Number of points generated: {points.Count}");
+        // Debug.Log($"Number of points generated: {points.Count}");
 
         for (int i = 0; i < points.Count; i++)
         {
@@ -62,7 +69,7 @@ public class TargetManager : MonoBehaviour
             if (i == 0) // The first target is the goal target
             {
                 targetScript.SetTargetType(TargetType.Goal);
-                Debug.Log($"Goal target spawned at position: {points[i]}");
+                // Debug.Log($"Goal target spawned at position: {points[i]}");
             }
             else // Remaining targets are distractors
             {

@@ -70,14 +70,13 @@ public class Target : MonoBehaviour
         Debug.Log($"Target selected: {targetType}");
         StartCoroutine(DestroyGameObject(0.1f));
 
-        // If this is the Start target, call StartNextPhase from TargetManager
         if (targetType == TargetType.Start)
         {
-            targetManager.StartNextPhase();
+            targetManager.StartNextPhase();  // Progress to the next phase if it's the start target
         }
         else if (targetType == TargetType.Goal)
         {
-            targetManager.StartNewTrial();
+            targetManager.OnGoalTargetSelected();  // Notify the TargetManager the goal target selected
         }
     }
 

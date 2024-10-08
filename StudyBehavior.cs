@@ -40,6 +40,7 @@ public class StudyBehavior : MonoBehaviour
     }
 
     private int participantID;
+    [SerializeField] private int totalTrials = 10; // Set the number of trials here
     [SerializeField] private StudySettings studySettings;
     [SerializeField] private int repetitions;
     [SerializeField] List<TrialConditions> blockSequence = new();
@@ -75,16 +76,19 @@ public class StudyBehavior : MonoBehaviour
 
     public void NextTrial()
     {
-        LogData();
+        // LogData();
+        Debug.Log($"SB: NextTrial called, currentTrialIndex: {currentTrialIndex}");
         currentTrialIndex++;
-        if (currentTrialIndex >= blockSequence.Count)
+
+        if (currentTrialIndex >= totalTrials)
         {
+            Debug.Log("EndScene should be loaded.");
             SceneManager.LoadScene("EndScreen");
         }
         else
         {
-            Debug.Log("StartNewTrial in Behavior fired");
-            targetManager.StartNewTrial();  // Start a new trial using TargetManager
+            Debug.Log("Proceed to the next trial.");
+            targetManager.StartNewTrial();  // Notify TargetManager to start a new trial
         }
     }
 
