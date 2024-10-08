@@ -18,7 +18,7 @@ public class TargetManager : MonoBehaviour
         SpawnStartTarget(); // Initially spawn the start target
     }
 
-    // Spawn the start target at the center of the screen
+    // Spawn the start target at the center of screen
     public void SpawnStartTarget()
     {
         // Clear previous targets
@@ -30,7 +30,6 @@ public class TargetManager : MonoBehaviour
         Target targetScript = startTarget.GetComponent<Target>();
         targetScript.SetTargetType(TargetType.Start);
         targetList.Add(targetScript);
-        // Debug.Log("Start target spawned at center position.");
     }
 
     public void StartNextPhase()
@@ -48,39 +47,8 @@ public class TargetManager : MonoBehaviour
     public void OnGoalTargetSelected()
     {
         Debug.Log("TM: OnGoalTargetSelected, delegating to SB");
-        studyBehavior.NextTrial();  // StudyBehavior decides if the next trial should start or the study should end
+        studyBehavior.NextTrial();  // StudyBehavior decides if the next trial should start
     }
-
-    // Spawn trial targets including the goal and distractors
-    public void SpawnTrialTargets()
-    {
-        // Clear previous targets
-        ClearTargets();
-
-        // Generate positions for all targets (goal + distractors)
-        List<Vector3> points = GenerateRandomPoints();
-        // Debug.Log($"Number of points generated: {points.Count}");
-
-        for (int i = 0; i < points.Count; i++)
-        {
-            GameObject newTarget = Instantiate(targetPrefab, points[i], Quaternion.identity, transform);
-            Target targetScript = newTarget.GetComponent<Target>();
-
-            if (i == 0) // The first target is the goal target
-            {
-                targetScript.SetTargetType(TargetType.Goal);
-                // Debug.Log($"Goal target spawned at position: {points[i]}");
-            }
-            else // Remaining targets are distractors
-            {
-                targetScript.SetTargetType(TargetType.Distractor);
-                // Debug.Log($"Distractor target spawned at position: {points[i]}");
-            }
-
-            targetList.Add(targetScript);
-        }
-    }
-
 
     // Clear all existing targets from the scene
     private void ClearTargets()
@@ -95,16 +63,122 @@ public class TargetManager : MonoBehaviour
         targetList.Clear();
     }
 
-    // Generate random points on the screen for targets
-    List<Vector3> GenerateRandomPoints()
+    // Spawn trial targets including the goal and distractors
+    public void SpawnTrialTargets()
     {
-        List<Vector3> pointList = new();
-        int numTargets = numDistractors + 1; // +1 to include the goal target
+        // Clear previous targets
+        ClearTargets();
+
+        // Spawn the goal target first at a random position
+        Vector3 goalPosition = GenerateSinglePoint();
+        GameObject goalTarget = Instantiate(targetPrefab, goalPosition, Quaternion.identity, transform);
+        Target goalTargetScript = goalTarget.GetComponent<Target>();
+        goalTargetScript.SetTargetType(TargetType.Goal);
+        targetList.Add(goalTargetScript);
+        Debug.Log($"Goal target spawned at position: {goalPosition}");
+
+        // Place four distractors around the goal target
+        float minOffset = 1.5f; // Min distance from the goal
+        float maxOffset = 3.0f; // Max distance from the goal
+        float offset = Random.Range(minOffset, maxOffset); // Random offset
+
+        // Calculate positions for the four distractors
+        Vector3[] fixedDistractorPositions = new Vector3[4];
+        fixedDistractorPositions[0] = goalPosition + new Vector3(0, offset, 0);    // North
+        fixedDistractorPositions[1] = goalPosition + new Vector3(0, -offset, 0);   // South
+        fixedDistractorPositions[2] = goalPosition + new Vector3(offset, 0, 0);    // East
+        fixedDistractorPositions[3] = goalPosition + new Vector3(-offset, 0, 0);   // West
+
+        // Instantiate fixed distractors at the calculated positions
+        for (int i = 0; i < fixedDistractorPositions.Length; i++)
+        {
+            Vector3 distractorPosition = fixedDistractorPositions[i];
+
+            // Ensure distractor positions are within the screen bounds
+            Vector3 screenPos = mainCamera.WorldToScreenPoint(distractorPosition);
+            if (screenPos.x < 0 || screenPos.x > Screen.width || screenPos.y < 0 || screenPos.y > Screen.height)
+            {
+                Debug.LogWarning($"Distractor position {i} is out of bounds, skipping.");
+                continue; // Skip out-of-bounds distractors
+            }
+
+            GameObject distractorTarget = Instantiate(targetPrefab, distractorPosition, Quaternion.identity, transform);
+            Target distractorScript = distractorTarget.GetComponent<Target>();
+            distractorScript.SetTargetType(TargetType.Distractor);
+            targetList.Add(distractorScript);
+            Debug.Log($"Distractor target spawned at position: {distractorPosition}");
+        }
+
+        // Generate additional random distractors if numDistractors is greater than 4
+        int additionalDistractors = numDistractors - 4;
+        if (additionalDistractors > 0)
+        {
+            List<Vector3> randomPoints = GenerateRandomPoints(additionalDistractors);
+            foreach (Vector3 randomPoint in randomPoints)
+            {
+                GameObject distractorTarget = Instantiate(targetPrefab, randomPoint, Quaternion.identity, transform);
+                Target distractorScript = distractorTarget.GetComponent<Target>();
+                distractorScript.SetTargetType(TargetType.Distractor);
+                targetList.Add(distractorScript);
+                // Debug.Log($"Additional distractor spawned at position: {randomPoint}");
+            }
+        }
+    }
+
+    private Vector3 GenerateSinglePoint()
+    {
+        Vector3 randomWorldPoint;
 
         // Radius threshold to prevent overlap, set based on target size
-        float minDistanceBetweenTargets = 1.0f; // Adjust this value depending on the size of your targets
+        float minDistanceBetweenTargets = 2.0f; // Adjust this value depending on the size of your targets
 
-        for (int i = 0; i < numTargets; i++)
+        // Attempt to find a valid non-overlapping position
+        bool validPointFound = false;
+        int maxAttempts = 50; // Prevent infinite loops by limiting attempts
+        int attempts = 0;
+
+        do
+        {
+            float randomX = Random.Range(0, Screen.width);
+            float randomY = Random.Range(0, Screen.height);
+            float z = 10f; // Set z to avoid camera occlusion
+
+            Vector3 randomScreenPoint = new Vector3(randomX, randomY, z);
+            randomWorldPoint = mainCamera.ScreenToWorldPoint(randomScreenPoint);
+
+            // Check if this point overlaps with any existing point
+            validPointFound = true; // Assume valid unless overlap is found
+            foreach (var target in targetList)
+            {
+                float distance = Vector3.Distance(randomWorldPoint, target.transform.position);
+                if (distance < minDistanceBetweenTargets)
+                {
+                    validPointFound = false; // Point is too close to an existing one
+                    break;
+                }
+            }
+
+            attempts++;
+
+        } while (!validPointFound && attempts < maxAttempts);
+
+        if (!validPointFound)
+        {
+            Debug.LogWarning($"Could not find non-overlapping position after {maxAttempts} attempts. Returning last generated point.");
+        }
+
+        return randomWorldPoint;
+    }
+
+    // Generate random points on the screen for targets
+    List<Vector3> GenerateRandomPoints(int numberOfPoints)
+    {
+        List<Vector3> pointList = new();
+
+        // Radius threshold to prevent overlap, set based on target size
+        float minDistanceBetweenTargets = 1.5f; // Adjust this value depending on the size of your targets
+
+        for (int i = 0; i < numberOfPoints; i++)
         {
             Vector3 randomWorldPoint;
 
@@ -119,14 +193,14 @@ public class TargetManager : MonoBehaviour
                 float randomY = Random.Range(0, Screen.height);
                 float z = 10f; // Set z to avoid camera occlusion
 
-                Vector3 randomScreenPoint = new(randomX, randomY, z);
+                Vector3 randomScreenPoint = new Vector3(randomX, randomY, z);
                 randomWorldPoint = mainCamera.ScreenToWorldPoint(randomScreenPoint);
 
                 // Check if this point overlaps with any existing point
                 validPointFound = true; // Assume valid unless overlap is found
-                foreach (var point in pointList)
+                foreach (var target in targetList)
                 {
-                    float distance = Vector3.Distance(randomWorldPoint, point);
+                    float distance = Vector3.Distance(randomWorldPoint, target.transform.position);
                     if (distance < minDistanceBetweenTargets)
                     {
                         validPointFound = false; // Point is too close to an existing one
@@ -144,11 +218,9 @@ public class TargetManager : MonoBehaviour
             }
 
             pointList.Add(randomWorldPoint);
-            Debug.Log($"Generated point {i}: {randomWorldPoint}");
+            // Debug.Log($"Generated point {i}: {randomWorldPoint}");
         }
 
         return pointList;
     }
-
-
 }
