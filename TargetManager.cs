@@ -18,7 +18,7 @@ public class TargetManager : MonoBehaviour
         SpawnStartTarget(); // Initially spawn the start target
     }
 
-    // Method to spawn the start target at the center of the screen
+    // Spawn the start target at the center of the screen
     public void SpawnStartTarget()
     {
         // Clear previous targets
@@ -51,7 +51,7 @@ public class TargetManager : MonoBehaviour
         studyBehavior.NextTrial();  // StudyBehavior decides if the next trial should start or the study should end
     }
 
-    // Method to spawn trial targets including the goal and distractors
+    // Spawn trial targets including the goal and distractors
     public void SpawnTrialTargets()
     {
         // Clear previous targets
@@ -82,7 +82,7 @@ public class TargetManager : MonoBehaviour
     }
 
 
-    // Method to clear all existing targets from the scene
+    // Clear all existing targets from the scene
     private void ClearTargets()
     {
         foreach (var target in targetList)
@@ -95,21 +95,60 @@ public class TargetManager : MonoBehaviour
         targetList.Clear();
     }
 
-    // Method to generate random points on the screen for targets
+    // Generate random points on the screen for targets
     List<Vector3> GenerateRandomPoints()
     {
         List<Vector3> pointList = new();
-        for (int i = 0; i < numDistractors + 1; i++) // +1 to include the goal target
+        int numTargets = numDistractors + 1; // +1 to include the goal target
+
+        // Radius threshold to prevent overlap, set based on target size
+        float minDistanceBetweenTargets = 1.0f; // Adjust this value depending on the size of your targets
+
+        for (int i = 0; i < numTargets; i++)
         {
-            float randomX = Random.Range(0, Screen.width);
-            float randomY = Random.Range(0, Screen.height);
-            float z = 10f; // Set z to avoid camera occlusion
-            Vector3 randomScreenPoint = new(randomX, randomY, z);
-            Vector3 randomWorldPoint = mainCamera.ScreenToWorldPoint(randomScreenPoint);
+            Vector3 randomWorldPoint;
+
+            // Attempt to find a valid non-overlapping position
+            bool validPointFound = false;
+            int maxAttempts = 100; // Prevent infinite loops by limiting attempts
+            int attempts = 0;
+
+            do
+            {
+                float randomX = Random.Range(0, Screen.width);
+                float randomY = Random.Range(0, Screen.height);
+                float z = 10f; // Set z to avoid camera occlusion
+
+                Vector3 randomScreenPoint = new(randomX, randomY, z);
+                randomWorldPoint = mainCamera.ScreenToWorldPoint(randomScreenPoint);
+
+                // Check if this point overlaps with any existing point
+                validPointFound = true; // Assume valid unless overlap is found
+                foreach (var point in pointList)
+                {
+                    float distance = Vector3.Distance(randomWorldPoint, point);
+                    if (distance < minDistanceBetweenTargets)
+                    {
+                        validPointFound = false; // Point is too close to an existing one
+                        break;
+                    }
+                }
+
+                attempts++;
+
+            } while (!validPointFound && attempts < maxAttempts);
+
+            if (!validPointFound)
+            {
+                Debug.LogWarning($"Could not find non-overlapping position after {maxAttempts} attempts. Continuing with remaining points.");
+            }
+
             pointList.Add(randomWorldPoint);
-            // Debug.Log($"Generated point {i}: {randomWorldPoint}");
+            Debug.Log($"Generated point {i}: {randomWorldPoint}");
         }
+
         return pointList;
     }
+
 
 }
