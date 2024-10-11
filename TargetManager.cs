@@ -46,7 +46,7 @@ public class TargetManager : MonoBehaviour
 
     public void OnGoalTargetSelected()
     {
-        Debug.Log("TM: OnGoalTargetSelected, delegating to SB");
+        // Debug.Log("TM: OnGoalTargetSelected, delegating to SB");
         studyBehavior.NextTrial();  // StudyBehavior decides if the next trial should start
     }
 
@@ -98,7 +98,7 @@ public class TargetManager : MonoBehaviour
             Vector3 screenPos = mainCamera.WorldToScreenPoint(distractorPosition);
             if (screenPos.x < 0 || screenPos.x > Screen.width || screenPos.y < 0 || screenPos.y > Screen.height)
             {
-                Debug.LogWarning($"Distractor position {i} is out of bounds, skipping.");
+                // Debug.LogWarning($"Distractor position {i} is out of bounds, skipping.");
                 continue; // Skip out-of-bounds distractors
             }
 
@@ -106,7 +106,7 @@ public class TargetManager : MonoBehaviour
             Target distractorScript = distractorTarget.GetComponent<Target>();
             distractorScript.SetTargetType(TargetType.Distractor);
             targetList.Add(distractorScript);
-            Debug.Log($"Distractor target spawned at position: {distractorPosition}");
+            // Debug.Log($"Distractor target spawned at position: {distractorPosition}");
         }
 
         // Generate additional random distractors if numDistractors is greater than 4

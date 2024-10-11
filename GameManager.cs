@@ -4,17 +4,25 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
 
+// DELETE CURSOR THAT'S NOT NEEDED IN STUDY SCENE
+// SWITCH BEHAVIOR TO TARGET CURSOR IN BOTH START AND STUDY SCENES
+
 public class GameManager : MonoBehaviour
 {
     [SerializeField] private TMP_InputField inputField;
     private BubbleCursor bubbleCursor;
+    private PointCursor pointCursor;
     private StudyBehavior studyBehavior;
     private int participantID;
     private void Awake()
     {
         bubbleCursor = FindObjectOfType<BubbleCursor>();
+        //Debug.Log($"GN Awake: bubbleCursor: {bubbleCursor}");
+        pointCursor = FindObjectOfType<PointCursor>();
+        //Debug.Log($"GN Awake: pointCursor: {pointCursor}");
+
         studyBehavior = FindObjectOfType<StudyBehavior>();
-        CSVManager.SetFilePath(studyBehavior.StudySettings.cursorType.ToString());
+        //CSVManager.SetFilePath(studyBehavior.StudySettings.cursorType.ToString());
         DontDestroyOnLoad(this);
     }
 
@@ -22,18 +30,46 @@ public class GameManager : MonoBehaviour
     {
         SetCursor(studyBehavior.StudySettings.cursorType);
     }
+
     public void SetCursor(CursorType cursor)
     {
+        Debug.Log($"SetCursor: CursorType: {cursor}");
+
+        // Deactivate both cursors initially
+        if (bubbleCursor != null)
+        {
+            bubbleCursor.gameObject.SetActive(false);
+        }
+
+        if (pointCursor != null)
+        {
+            pointCursor.gameObject.SetActive(false);
+        }
+
+        // Activate the selected cursor
         if (cursor == CursorType.PointCursor)
         {
-            // If it's a Point Cursor, we can shrink the bubbleCursor to behave as a point
-            bubbleCursor.gameObject.SetActive(false);  // Disable Bubble Cursor
-
-            // You can create a simple PointCursor logic here if needed
+            Debug.Log("SetCursor: PointCursor selected");
+            if (pointCursor != null)
+            {
+                pointCursor.gameObject.SetActive(true);
+            }
+            else
+            {
+                Debug.LogError("PointCursor reference is null.");
+            }
         }
         else if (cursor == CursorType.BubbleCursor)
         {
-            bubbleCursor.gameObject.SetActive(true);  // Enable Bubble Cursor
+            Debug.Log("SetCursor: BubbleCursor selected");
+            if (bubbleCursor != null)
+            {
+                bubbleCursor.gameObject.SetActive(true);
+            }
+            else
+            {
+                Debug.LogError("BubbleCursor reference is null.");
+            }
         }
         else
         {
@@ -47,7 +83,6 @@ public class GameManager : MonoBehaviour
         participantID = int.Parse(inputField.text);
         studyBehavior.ParticipantID = participantID;
 
-        // Load the next scene (StudyScene)
         SceneManager.LoadScene("StudyScene");
     }
 }

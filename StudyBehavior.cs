@@ -64,7 +64,7 @@ public class StudyBehavior : MonoBehaviour
 
     private void Start()
     {
-        LogHeader();
+        // LogHeader();
         CreateBlock();
         targetManager = FindObjectOfType<TargetManager>();
     }
