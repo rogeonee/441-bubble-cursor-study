@@ -9,12 +9,15 @@ public class CSVManager : MonoBehaviour
 
     public static void SetFilePath(string cursorType)
     {
-        filePath = Path.Combine(Application.dataPath, $"data_{cursorType}.csv");
+        // filePath = Path.Combine(Application.dataPath, $"data_PointCursor.csv");
+        filePath = Path.Combine(Application.dataPath, $"data_BubbleCursor.csv");
     }
 
     // Method to write data to a CSV file
     public static void WriteToCSV(List<string[]> data)
     {
+        // filePath = Path.Combine(Application.dataPath, $"data_PointCursor.csv");
+        filePath = Path.Combine(Application.dataPath, $"data_BubbleCursor.csv");
         using (StreamWriter sw = new(filePath))
         {
             foreach (string[] line in data)
@@ -26,6 +29,9 @@ public class CSVManager : MonoBehaviour
 
     public static void AppendToCSV(string[] data)
     {
+        // filePath = Path.Combine(Application.dataPath, $"data_PointCursor.csv");
+        filePath = Path.Combine(Application.dataPath, $"data_BubbleCursor.csv");
+
         // Use StreamWriter with append set to true
         using (StreamWriter sw = new StreamWriter(filePath, true))
         {

@@ -17,12 +17,9 @@ public class GameManager : MonoBehaviour
     private void Awake()
     {
         bubbleCursor = FindObjectOfType<BubbleCursor>();
-        //Debug.Log($"GN Awake: bubbleCursor: {bubbleCursor}");
         pointCursor = FindObjectOfType<PointCursor>();
-        //Debug.Log($"GN Awake: pointCursor: {pointCursor}");
 
         studyBehavior = FindObjectOfType<StudyBehavior>();
-        //CSVManager.SetFilePath(studyBehavior.StudySettings.cursorType.ToString());
         DontDestroyOnLoad(this);
     }
 
@@ -33,9 +30,7 @@ public class GameManager : MonoBehaviour
 
     public void SetCursor(CursorType cursor)
     {
-        Debug.Log($"SetCursor: CursorType: {cursor}");
-
-        // Deactivate both cursors initially
+        // Deactivate both initially
         if (bubbleCursor != null)
         {
             bubbleCursor.gameObject.SetActive(false);
@@ -46,7 +41,7 @@ public class GameManager : MonoBehaviour
             pointCursor.gameObject.SetActive(false);
         }
 
-        // Activate the selected cursor
+        // Activate selected
         if (cursor == CursorType.PointCursor)
         {
             Debug.Log("SetCursor: PointCursor selected");

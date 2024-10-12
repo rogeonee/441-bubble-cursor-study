@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using Random = UnityEngine.Random;
 
-
 [Serializable]
 public class TrialConditions
 {
@@ -13,7 +12,6 @@ public class TrialConditions
     public float EWToW_Ratio;
 }
 
-[Serializable]
 public class StudySettings
 {
     public List<float> targetSizes;
@@ -30,6 +28,7 @@ public enum CursorType
 
 public class StudyBehavior : MonoBehaviour
 {
+    public static StudyBehavior Instance { get; private set; }
     public TrialConditions CurrentTrial => blockSequence[currentTrialIndex];
     public StudySettings StudySettings => studySettings;
 
@@ -40,16 +39,15 @@ public class StudyBehavior : MonoBehaviour
     }
 
     private int participantID;
-    [SerializeField] private int totalTrials = 10; // Set the number of trials here
-    [SerializeField] private StudySettings studySettings;
-    [SerializeField] private int repetitions;
-    [SerializeField] List<TrialConditions> blockSequence = new();
+    private int totalTrials;
+    private StudySettings studySettings;
+    [SerializeField] private int repetitions = 1;
+    private List<TrialConditions> blockSequence = new();
     [SerializeField] private TargetManager targetManager;
 
     private float timer = 0f;
     private int misClick = 0;
     private int currentTrialIndex = 0;
-    private int missedClicks;
 
     private string[] header =
     {
@@ -62,9 +60,26 @@ public class StudyBehavior : MonoBehaviour
         "MissedClicks"
     };
 
+    private void Awake()
+    {
+        // Initialize studySettings with hardcoded values
+        studySettings = new StudySettings
+        {
+            // cursorType = CursorType.PointCursor,               // Set cursor type
+            cursorType = CursorType.BubbleCursor,
+            targetSizes = new List<float> { 50f, 100f },       // Set target sizes
+            targetAmplitudes = new List<float> { 200f, 400f }, // Set amplitudes
+            EWToW_Ratio = new List<float> { 1f, 1.5f }         // Set EW/W ratios
+        };
+
+        CreateBlock();
+        totalTrials = 5; // Set trials
+    }
+
     private void Start()
     {
-        // LogHeader();
+        Debug.Log("SB: Start - LogHeader");
+        LogHeader();
         CreateBlock();
         targetManager = FindObjectOfType<TargetManager>();
     }
@@ -76,7 +91,7 @@ public class StudyBehavior : MonoBehaviour
 
     public void NextTrial()
     {
-        // LogData();
+        LogData();
         Debug.Log($"SB: NextTrial called, currentTrialIndex: {currentTrialIndex}");
         currentTrialIndex++;
 
@@ -158,5 +173,3 @@ public class StudyBehavior : MonoBehaviour
         return list;
     }
 }
-
-

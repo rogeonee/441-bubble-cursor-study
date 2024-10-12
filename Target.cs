@@ -15,26 +15,27 @@ public class Target : MonoBehaviour
     private bool onSelect;
     private TargetType targetType;
     private TargetManager targetManager;
+    private StudyBehavior studyBehavior;
 
-    void Awake() // Use Awake instead of Start to initialize sprite earlier
+    void Awake()
     {
         sprite = GetComponent<SpriteRenderer>();
     }
 
     void Start()
     {
-        targetManager = FindObjectOfType<TargetManager>(); // Find TargetManager instance
+        targetManager = FindObjectOfType<TargetManager>();
+        studyBehavior = FindObjectOfType<StudyBehavior>();
     }
 
-    // Method to set the type of the target (Start, Goal, Distractor)
+    // Set the type of the target (Start, Goal, Distractor)
     public void SetTargetType(TargetType type)
     {
         targetType = type;
         UpdateColor();
-        // Debug.Log($"Target type set to: {targetType}");
     }
 
-    // Method to update the color of the target based on its type
+    // Update the color based on its type
     private void UpdateColor()
     {
         switch (targetType)
@@ -73,6 +74,10 @@ public class Target : MonoBehaviour
         if (targetType == TargetType.Start)
         {
             targetManager.StartNextPhase();  // Progress to the next phase if it's the start target
+        }
+        else if (targetType == TargetType.Distractor)
+        {
+            targetManager.OnMissClick();
         }
         else if (targetType == TargetType.Goal)
         {

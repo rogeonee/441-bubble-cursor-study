@@ -46,8 +46,12 @@ public class TargetManager : MonoBehaviour
 
     public void OnGoalTargetSelected()
     {
-        // Debug.Log("TM: OnGoalTargetSelected, delegating to SB");
         studyBehavior.NextTrial();  // StudyBehavior decides if the next trial should start
+    }
+
+    public void OnMissClick()
+    {
+        studyBehavior.HandleMisClick();
     }
 
     // Clear all existing targets from the scene
